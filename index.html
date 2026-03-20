@@ -12,7 +12,7 @@ body{margin:0;font-family:Arial;background:#f0f2f5}
 .screen{display:none !important}
 .active{display:block !important}
 
-/* LOGIN CENTRAL */
+/* LOGIN */
 #loginScreen.active{
   display:flex !important;
   justify-content:center;
@@ -90,7 +90,7 @@ button{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBb-sYq3uJwIJCOPqYRyqAR_U3VdMp1C5o",
@@ -187,18 +187,36 @@ window.createPost = async()=>{
   await addDoc(collection(db,"posts"),{
     title:document.getElementById("title").value,
     description:document.getElementById("desc").value,
-    likes:0,
+    likes:[],
     email:user.email
   });
 
   closeUpload();
 };
 
-/* LIKE */
+/* LIKE TOGGLE */
 window.likePost = async(id)=>{
-  await updateDoc(doc(db,"posts",id),{
-    likes:increment(1)
+  const user = auth.currentUser;
+  const ref = doc(db,"posts",id);
+
+  const snap = await getDocs(collection(db,"posts"));
+  let postData;
+
+  snap.forEach(d=>{
+    if(d.id === id){
+      postData = d.data();
+    }
   });
+
+  let likes = postData.likes || [];
+
+  if(likes.includes(user.uid)){
+    likes = likes.filter(uid => uid !== user.uid);
+  }else{
+    likes.push(user.uid);
+  }
+
+  await updateDoc(ref,{ likes });
 };
 
 /* POSTS */
@@ -215,7 +233,9 @@ function loadPosts(){
         <b>${p.email}</b>
         <h3>${p.title}</h3>
         <p>${p.description}</p>
-        <button onclick="likePost('${d.id}')">Curtir (${p.likes})</button>
+        <button onclick="likePost('${d.id}')">
+          Curtir (${p.likes ? p.likes.length : 0})
+        </button>
       </div>`;
     });
   });
