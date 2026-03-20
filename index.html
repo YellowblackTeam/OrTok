@@ -1,0 +1,155 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>OrTok</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, doc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";const firebaseConfig = {
+  apiKey: "AIzaSyBb-sYq3uJwIJCOPqYRyqAR_U3VdMp1C5o",
+  authDomain: "ortok-c2e04.firebaseapp.com",
+  projectId: "ortok-c2e04",
+  storageBucket: "ortok-c2e04.firebasestorage.app",
+  messagingSenderId: "46153502831",
+  appId: "1:46153502831:web:98b402559e15cbd240fd9a",
+  measurementId: "G-8J52V6YL7Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.register = async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value;
+
+  const snapshot = await getDocs(collection(db, "users"));
+  let exists = false;
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.username.toLowerCase() === username.toLowerCase()) {
+      exists = true;
+    }
+  });
+
+  if (exists) {
+    alert("O nome já está sendo usado");
+    return;
+  }
+
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
+
+  await addDoc(collection(db, "users"), {
+    username,
+    email,
+    userId: user.uid
+  });
+
+  alert("Conta criada!");
+};
+
+window.login = async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  await signInWithEmailAndPassword(auth, email, password);
+  alert("Logado!");
+  loadPosts();
+};
+
+window.createPost = async () => {
+  const title = document.getElementById("title").value;
+  const description = document.getElementById("desc").value;
+
+  const user = auth.currentUser;
+  if (!user) return alert("Faça login!");
+
+  await addDoc(collection(db, "posts"), {
+    title,
+    description,
+    likes: 0,
+    userId: user.uid,
+    email: user.email
+  });
+};
+
+window.likePost = async (id) => {
+  const ref = doc(db, "posts", id);
+  await updateDoc(ref, { likes: increment(1) });
+};
+
+function loadPosts() {
+  const container = document.getElementById("posts");
+
+  onSnapshot(collection(db, "posts"), (snapshot) => {
+    container.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <h4>📧 ${data.email}</h4>
+        <h3>${data.title}</h3>
+        <p>${data.description}</p>
+        <button onclick="likePost('${docSnap.id}')">❤️ ${data.likes}</button>
+        <hr>
+      `;
+
+      container.appendChild(div);
+    });
+  });
+}
+
+window.onload = loadPosts;
+
+  </script>
+</head>
+<body style="background:#0f0f0f;color:white;font-family:sans-serif"><h1>OrTok</h1><h2>Conta</h2>
+<input id="email" placeholder="Email"><br>
+<input id="password" placeholder="Senha" type="password"><br>
+<input id="username" placeholder="Nome"><br>
+<button onclick="register()">Criar Conta</button>
+<button onclick="login()">Login</button><hr><style>
+#uploadModal {
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
+}
+#uploadBox {
+  background:#1a1a1a;
+  padding:20px;
+  border-radius:10px;
+}
+#topBar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+</style><div id="topBar">
+  <h2>OrTok</h2>
+  <button onclick="openUpload()">➕ Upload</button>
+</div><div id="uploadModal">
+  <div id="uploadBox">
+    <h3>Criar Post</h3>
+    <input id="title" placeholder="Título"><br>
+    <textarea id="desc" placeholder="Descrição"></textarea><br>
+    <button onclick="createPost(); closeUpload();">Postar</button>
+    <button onclick="closeUpload()">Fechar</button>
+  </div>
+</div><script>
+function openUpload(){
+  document.getElementById("uploadModal").style.display="flex";
+}
+function closeUpload(){
+  document.getElementById("uploadModal").style.display="none";
+}
+</script><hr><h2>Posts</h2>
+<div id="posts"></div></body>
+</html>
