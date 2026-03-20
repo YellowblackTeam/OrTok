@@ -3,90 +3,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OrTok</title><style>
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#050505}
-
+body{margin:0;font-family:Arial;background:#f0f2f5}
 .screen{display:none}
 .active{display:block}
 
-/* LOGIN */
-#loginScreen{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
+#loginScreen{display:flex;justify-content:center;align-items:center;height:100vh}
+.login-box{background:white;padding:20px;border-radius:10px;width:90%;max-width:350px}
 
-.login-box{
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  width:90%;
-  max-width:350px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.2);
-}
+input,textarea{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
+button{padding:10px;border:none;border-radius:6px;background:#1877f2;color:white;width:100%;margin-top:5px}
 
-input, textarea{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
+#top{background:white;padding:10px;display:flex;justify-content:space-between;position:sticky;top:0}
+#posts{padding:10px}
+.post{background:white;padding:10px;margin-bottom:10px;border-radius:10px}
 
-button{
-  padding:10px;
-  border:none;
-  border-radius:6px;
-  background:#1877f2;
-  color:white;
-  font-weight:bold;
-  width:100%;
-  margin-top:5px;
-}
-
-/* APP */
-#top{
-  background:white;
-  padding:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  position:sticky;
-  top:0;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
-
-#posts{
-  padding:10px;
-}
-
-.post{
-  background:white;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:10px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* MODAL */
-#uploadModal{
-  display:none;
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:rgba(0,0,0,0.5);
-  justify-content:center;
-  align-items:center;
-}
-
-.box{
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  width:90%;
-  max-width:400px;
-}
+#uploadModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center}
+.box{background:white;padding:20px;border-radius:10px;width:90%;max-width:400px}
 </style><script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -105,68 +37,95 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// REGISTER
 window.register = async () => {
-  const email = emailInput.value;
-  const pass = passwordInput.value;
-  const usern = usernameInput.value;
+  try{
+    const email = document.getElementById("emailInput").value;
+    const pass = document.getElementById("passwordInput").value;
+    const usern = document.getElementById("usernameInput").value;
 
-  const snap = await getDocs(collection(db,"users"));
-  let exists=false;
-  snap.forEach(d=>{
-    if(d.data().username.toLowerCase()===usern.toLowerCase()) exists=true;
-  });
+    const snap = await getDocs(collection(db,"users"));
+    let exists=false;
 
-  if(exists) return alert("Nome já usado");
+    snap.forEach(d=>{
+      if(d.data().username.toLowerCase()===usern.toLowerCase()){
+        exists=true;
+      }
+    });
 
-  const cred = await createUserWithEmailAndPassword(auth,email,pass);
+    if(exists){
+      alert("Nome já usado");
+      return;
+    }
 
-  await addDoc(collection(db,"users"),{
-    username:usern,
-    email,
-    uid:cred.user.uid
-  });
+    await createUserWithEmailAndPassword(auth,email,pass);
+    alert("Conta criada!");
+
+  }catch(e){
+    alert("Erro ao criar conta");
+  }
 };
 
-window.login = async () =>{
-  await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
+// LOGIN
+window.login = async () => {
+  try{
+    const email = document.getElementById("emailInput").value;
+    const pass = document.getElementById("passwordInput").value;
+
+    await signInWithEmailAndPassword(auth,email,pass);
+    alert("Logado!");
+
+  }catch(e){
+    alert("Erro ao logar");
+  }
 };
 
+// SWITCH SCREEN
 onAuthStateChanged(auth,(user)=>{
   if(user){
-    loginScreen.classList.remove("active");
-    appScreen.classList.add("active");
+    document.getElementById("loginScreen").classList.remove("active");
+    document.getElementById("appScreen").classList.add("active");
     loadPosts();
   }
 });
 
-window.openUpload=()=>uploadModal.style.display="flex";
-window.closeUpload=()=>uploadModal.style.display="none";
+// MODAL
+window.openUpload=()=>document.getElementById("uploadModal").style.display="flex";
+window.closeUpload=()=>document.getElementById("uploadModal").style.display="none";
 
+// CREATE POST
 window.createPost = async()=>{
   const user = auth.currentUser;
+
   await addDoc(collection(db,"posts"),{
-    title:title.value,
-    description:desc.value,
+    title:document.getElementById("title").value,
+    description:document.getElementById("desc").value,
     likes:0,
     email:user.email
   });
+
   closeUpload();
 };
 
-window.likePost=async(id)=>{
+// LIKE
+window.likePost = async(id)=>{
   await updateDoc(doc(db,"posts",id),{
     likes:increment(1)
   });
 };
 
+// LOAD POSTS
 function loadPosts(){
   onSnapshot(collection(db,"posts"),(snap)=>{
-    posts.innerHTML="";
+    const container = document.getElementById("posts");
+    container.innerHTML="";
+
     snap.forEach(d=>{
       const p=d.data();
-      posts.innerHTML+=`
+
+      container.innerHTML+=`
       <div class='post'>
-        <strong>${p.email}</strong>
+        <b>${p.email}</b>
         <h3>${p.title}</h3>
         <p>${p.description}</p>
         <button onclick="likePost('${d.id}')">Curtir (${p.likes})</button>
@@ -179,7 +138,7 @@ function loadPosts(){
     <h2>OrTok</h2>
     <input id="emailInput" placeholder="Email">
     <input id="passwordInput" type="password" placeholder="Senha">
-    <input id="usernameInput" placeholder="Username (cadastro)">
+    <input id="usernameInput" placeholder="Username">
     <button onclick="login()">Entrar</button>
     <button onclick="register()">Criar conta</button>
   </div>
@@ -192,7 +151,7 @@ function loadPosts(){
   <div class="box">
     <h3>Criar publicação</h3>
     <input id="title" placeholder="Título">
-    <textarea id="desc" placeholder="No que você está pensando?"></textarea>
+    <textarea id="desc" placeholder="Descrição"></textarea>
     <button onclick="createPost()">Publicar</button>
     <button onclick="closeUpload()">Cancelar</button>
   </div>
