@@ -32,15 +32,21 @@ import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, o
 const firebaseConfig = {
   apiKey: "AIzaSyBb-sYq3uJwIJCOPqYRyqAR_U3VdMp1C5o",
   authDomain: "ortok-c2e04.firebaseapp.com",
-  projectId: "ortok-c2e04",
+  projectId: "ortok-c2e04"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// REGISTER
-window.register = async () => {
+// ===== BOTÕES (FUNCIONA NO ANDROID) =====
+window.onload = () => {
+  document.getElementById("loginBtn").onclick = login;
+  document.getElementById("registerBtn").onclick = register;
+};
+
+// ===== CADASTRO =====
+async function register(){
   try{
     const email = document.getElementById("emailInput").value;
     const pass = document.getElementById("passwordInput").value;
@@ -55,7 +61,7 @@ window.register = async () => {
     let exists=false;
 
     snap.forEach(d=>{
-      if(d.data().username.toLowerCase()===usern.toLowerCase()){
+      if(d.data().username.toLowerCase() === usern.toLowerCase()){
         exists=true;
       }
     });
@@ -78,10 +84,10 @@ window.register = async () => {
   }catch(e){
     alert(e.code);
   }
-};
+}
 
-// LOGIN (CORRIGIDO)
-window.login = async () => {
+// ===== LOGIN =====
+async function login(){
   try{
     const email = document.getElementById("emailInput").value;
     const pass = document.getElementById("passwordInput").value;
@@ -96,9 +102,9 @@ window.login = async () => {
   }catch(e){
     alert(e.code);
   }
-};
+}
 
-// TROCAR TELA
+// ===== TROCAR TELA =====
 onAuthStateChanged(auth,(user)=>{
   if(user){
     document.getElementById("loginScreen").classList.remove("active");
@@ -107,11 +113,11 @@ onAuthStateChanged(auth,(user)=>{
   }
 });
 
-// MODAL
+// ===== MODAL =====
 window.openUpload=()=>document.getElementById("uploadModal").style.display="flex";
 window.closeUpload=()=>document.getElementById("uploadModal").style.display="none";
 
-// POST
+// ===== POST =====
 window.createPost = async()=>{
   const user = auth.currentUser;
 
@@ -125,14 +131,14 @@ window.createPost = async()=>{
   closeUpload();
 };
 
-// LIKE
+// ===== LIKE =====
 window.likePost = async(id)=>{
   await updateDoc(doc(db,"posts",id),{
     likes:increment(1)
   });
 };
 
-// LOAD POSTS
+// ===== POSTS =====
 function loadPosts(){
   onSnapshot(collection(db,"posts"),(snap)=>{
     const container = document.getElementById("posts");
@@ -156,17 +162,19 @@ function loadPosts(){
 
 <body>
 
+<!-- LOGIN -->
 <div id="loginScreen" class="screen active">
   <div class="login-box">
     <h2>OrTok</h2>
     <input id="emailInput" placeholder="Email">
     <input id="passwordInput" type="password" placeholder="Senha">
     <input id="usernameInput" placeholder="Username">
-    <button onclick="login()">Entrar</button>
-    <button onclick="register()">Criar conta</button>
+    <button id="loginBtn">Entrar</button>
+    <button id="registerBtn">Criar conta</button>
   </div>
 </div>
 
+<!-- APP -->
 <div id="appScreen" class="screen">
   <div id="top">
     <h3>OrTok</h3>
@@ -176,6 +184,7 @@ function loadPosts(){
   <div id="posts"></div>
 </div>
 
+<!-- MODAL -->
 <div id="uploadModal">
   <div class="box">
     <h3>Criar publicação</h3>
