@@ -3,52 +3,85 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OrTok</title><style>
-body{margin:0;font-family:sans-serif;background:#0f0f0f;color:white}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#050505}
 
-.screen{display:none;padding:20px}
+.screen{display:none}
 .active{display:block}
+
+/* LOGIN */
+#loginScreen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+.login-box{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:90%;
+  max-width:350px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.2);
+}
 
 input, textarea{
   width:100%;
-  margin:5px 0;
   padding:10px;
-  border-radius:8px;
-  border:none;
+  margin:5px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
 }
 
 button{
   padding:10px;
   border:none;
-  border-radius:8px;
-  background:#00ff88;
+  border-radius:6px;
+  background:#1877f2;
+  color:white;
   font-weight:bold;
+  width:100%;
+  margin-top:5px;
 }
 
+/* APP */
 #top{
+  background:white;
+  padding:10px;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  position:sticky;
+  top:0;
+  box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+#posts{
+  padding:10px;
 }
 
 .post{
-  background:#1a1a1a;
+  background:white;
   padding:10px;
-  margin-top:10px;
+  margin-bottom:10px;
   border-radius:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1);
 }
 
+/* MODAL */
 #uploadModal{
   display:none;
   position:fixed;
   top:0;left:0;
   width:100%;height:100%;
-  background:rgba(0,0,0,0.8);
+  background:rgba(0,0,0,0.5);
   justify-content:center;
   align-items:center;
 }
 
 .box{
-  background:#1a1a1a;
+  background:white;
   padding:20px;
   border-radius:10px;
   width:90%;
@@ -133,32 +166,34 @@ function loadPosts(){
       const p=d.data();
       posts.innerHTML+=`
       <div class='post'>
-        <small>${p.email}</small>
+        <strong>${p.email}</strong>
         <h3>${p.title}</h3>
         <p>${p.description}</p>
-        <button onclick="likePost('${d.id}')">❤️ ${p.likes}</button>
+        <button onclick="likePost('${d.id}')">Curtir (${p.likes})</button>
       </div>`;
     });
   });
 }
 </script></head><body><div id="loginScreen" class="screen active">
-  <h2>OrTok Login</h2>
-  <input id="emailInput" placeholder="Email">
-  <input id="passwordInput" type="password" placeholder="Senha">
-  <input id="usernameInput" placeholder="Username (só cadastro)">
-  <button onclick="login()">Login</button>
-  <button onclick="register()">Criar Conta</button>
+  <div class="login-box">
+    <h2>OrTok</h2>
+    <input id="emailInput" placeholder="Email">
+    <input id="passwordInput" type="password" placeholder="Senha">
+    <input id="usernameInput" placeholder="Username (cadastro)">
+    <button onclick="login()">Entrar</button>
+    <button onclick="register()">Criar conta</button>
+  </div>
 </div><div id="appScreen" class="screen">
   <div id="top">
-    <h2>OrTok</h2>
-    <button onclick="openUpload()">➕</button>
+    <h3>OrTok</h3>
+    <button onclick="openUpload()">Criar</button>
   </div>  <div id="posts"></div>
 </div><div id="uploadModal">
   <div class="box">
-    <h3>Post</h3>
+    <h3>Criar publicação</h3>
     <input id="title" placeholder="Título">
-    <textarea id="desc" placeholder="Descrição"></textarea>
-    <button onclick="createPost()">Postar</button>
+    <textarea id="desc" placeholder="No que você está pensando?"></textarea>
+    <button onclick="createPost()">Publicar</button>
     <button onclick="closeUpload()">Cancelar</button>
   </div>
 </div></body>
