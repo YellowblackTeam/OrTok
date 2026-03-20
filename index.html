@@ -7,21 +7,84 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#f0f2f5}
-.screen{display:none}
-.active{display:block}
 
-#loginScreen{display:flex;justify-content:center;align-items:center;height:100vh}
-.login-box{background:white;padding:20px;border-radius:10px;width:90%;max-width:350px}
+/* TELAS */
+.screen{display:none !important}
+.active{display:block !important}
 
-input,textarea{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
-button{padding:10px;border:none;border-radius:6px;background:#1877f2;color:white;width:100%;margin-top:5px}
+/* LOGIN CENTRAL */
+#loginScreen.active{
+  display:flex !important;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
 
-#top{background:white;padding:10px;display:flex;justify-content:space-between;position:sticky;top:0}
+.login-box{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:90%;
+  max-width:350px;
+}
+
+/* INPUTS */
+input,textarea{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+/* BOTÕES */
+button{
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  background:#1877f2;
+  color:white;
+  width:100%;
+  margin-top:5px;
+}
+
+/* TOPO */
+#top{
+  background:white;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+}
+
+/* POSTS */
 #posts{padding:10px}
-.post{background:white;padding:10px;margin-bottom:10px;border-radius:10px}
+.post{
+  background:white;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:10px;
+}
 
-#uploadModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center}
-.box{background:white;padding:20px;border-radius:10px;width:90%;max-width:400px}
+/* MODAL */
+#uploadModal{
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.5);
+  justify-content:center;
+  align-items:center;
+}
+
+.box{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:90%;
+  max-width:400px;
+}
 </style>
 
 <script type="module">
@@ -39,13 +102,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ===== BOTÕES (FUNCIONA NO ANDROID) =====
+/* BOTÕES */
 window.onload = () => {
   document.getElementById("loginBtn").onclick = login;
   document.getElementById("registerBtn").onclick = register;
 };
 
-// ===== CADASTRO =====
+/* CADASTRO */
 async function register(){
   try{
     const email = document.getElementById("emailInput").value;
@@ -86,7 +149,7 @@ async function register(){
   }
 }
 
-// ===== LOGIN =====
+/* LOGIN */
 async function login(){
   try{
     const email = document.getElementById("emailInput").value;
@@ -104,7 +167,7 @@ async function login(){
   }
 }
 
-// ===== TROCAR TELA =====
+/* TROCAR TELA */
 onAuthStateChanged(auth,(user)=>{
   if(user){
     document.getElementById("loginScreen").classList.remove("active");
@@ -113,11 +176,11 @@ onAuthStateChanged(auth,(user)=>{
   }
 });
 
-// ===== MODAL =====
+/* MODAL */
 window.openUpload=()=>document.getElementById("uploadModal").style.display="flex";
 window.closeUpload=()=>document.getElementById("uploadModal").style.display="none";
 
-// ===== POST =====
+/* POST */
 window.createPost = async()=>{
   const user = auth.currentUser;
 
@@ -131,14 +194,14 @@ window.createPost = async()=>{
   closeUpload();
 };
 
-// ===== LIKE =====
+/* LIKE */
 window.likePost = async(id)=>{
   await updateDoc(doc(db,"posts",id),{
     likes:increment(1)
   });
 };
 
-// ===== POSTS =====
+/* POSTS */
 function loadPosts(){
   onSnapshot(collection(db,"posts"),(snap)=>{
     const container = document.getElementById("posts");
