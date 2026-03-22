@@ -48,16 +48,6 @@ button{
   margin-top:5px;
 }
 
-/* TOPO */
-#top{
-  background:white;
-  padding:10px;
-  display:flex;
-  justify-content:space-between;
-  position:sticky;
-  top:0;
-}
-
 /* POSTS */
 #posts{padding:10px}
 .post{
@@ -65,6 +55,17 @@ button{
   padding:10px;
   margin-bottom:10px;
   border-radius:10px;
+}
+
+/* BOTÃO FLUTUANTE */
+#uploadBtn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  font-size:25px;
 }
 
 /* MODAL */
@@ -90,10 +91,10 @@ button{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBb-sYq3uJwIJCOPqYRyqAR_U3VdMp1C5o",
+  apiKey: "AIzaSy...",
   authDomain: "ortok-c2e04.firebaseapp.com",
   projectId: "ortok-c2e04"
 };
@@ -104,16 +105,16 @@ const db = getFirestore(app);
 
 /* BOTÕES */
 window.onload = () => {
-  document.getElementById("loginBtn").onclick = login;
-  document.getElementById("registerBtn").onclick = register;
+  loginBtn.onclick = login;
+  registerBtn.onclick = register;
 };
 
 /* CADASTRO */
 async function register(){
   try{
-    const email = document.getElementById("emailInput").value;
-    const pass = document.getElementById("passwordInput").value;
-    const usern = document.getElementById("usernameInput").value;
+    const email = emailInput.value;
+    const pass = passwordInput.value;
+    const usern = usernameInput.value;
 
     if(!email || !pass || !usern){
       alert("Preenche tudo");
@@ -152,15 +153,12 @@ async function register(){
 /* LOGIN */
 async function login(){
   try{
-    const email = document.getElementById("emailInput").value;
-    const pass = document.getElementById("passwordInput").value;
-
-    if(!email || !pass){
-      alert("Preenche email e senha");
+    if(!emailInput.value || !passwordInput.value){
+      alert("Preenche tudo");
       return;
     }
 
-    await signInWithEmailAndPassword(auth,email,pass);
+    await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
 
   }catch(e){
     alert(e.code);
@@ -170,45 +168,42 @@ async function login(){
 /* TROCAR TELA */
 onAuthStateChanged(auth,(user)=>{
   if(user){
-    document.getElementById("loginScreen").classList.remove("active");
-    document.getElementById("appScreen").classList.add("active");
+    loginScreen.classList.remove("active");
+    appScreen.classList.add("active");
     loadPosts();
   }
 });
 
 /* MODAL */
-window.openUpload=()=>document.getElementById("uploadModal").style.display="flex";
-window.closeUpload=()=>document.getElementById("uploadModal").style.display="none";
+window.openUpload=()=>uploadModal.style.display="flex";
+window.closeUpload=()=>uploadModal.style.display="none";
 
 /* POST */
 window.createPost = async()=>{
   const user = auth.currentUser;
 
   await addDoc(collection(db,"posts"),{
-    title:document.getElementById("title").value,
-    description:document.getElementById("desc").value,
+    title:title.value,
+    description:desc.value,
     likes:[],
     email:user.email
   });
 
+  title.value="";
+  desc.value="";
+
   closeUpload();
 };
 
-/* LIKE TOGGLE */
+/* LIKE (CORRIGIDO) */
 window.likePost = async(id)=>{
   const user = auth.currentUser;
   const ref = doc(db,"posts",id);
 
-  const snap = await getDocs(collection(db,"posts"));
-  let postData;
+  const snap = await getDoc(ref);
+  const data = snap.data();
 
-  snap.forEach(d=>{
-    if(d.id === id){
-      postData = d.data();
-    }
-  });
-
-  let likes = postData.likes || [];
+  let likes = data.likes || [];
 
   if(likes.includes(user.uid)){
     likes = likes.filter(uid => uid !== user.uid);
@@ -222,13 +217,12 @@ window.likePost = async(id)=>{
 /* POSTS */
 function loadPosts(){
   onSnapshot(collection(db,"posts"),(snap)=>{
-    const container = document.getElementById("posts");
-    container.innerHTML="";
+    posts.innerHTML="";
 
     snap.forEach(d=>{
       const p=d.data();
 
-      container.innerHTML+=`
+      posts.innerHTML+=`
       <div class='post'>
         <b>${p.email}</b>
         <h3>${p.title}</h3>
@@ -259,12 +253,10 @@ function loadPosts(){
 
 <!-- APP -->
 <div id="appScreen" class="screen">
-  <div id="top">
-    <h3>OrTok</h3>
-    <button onclick="openUpload()">Criar</button>
-  </div>
-
   <div id="posts"></div>
+
+  <!-- BOTÃO UPLOAD -->
+  <button id="uploadBtn" onclick="openUpload()">+</button>
 </div>
 
 <!-- MODAL -->
